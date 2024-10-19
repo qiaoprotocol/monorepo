@@ -15,7 +15,7 @@ contract QiaoFactory is IExtendedResolver {
     struct ContractInfo {
         address addr;
         string name;
-        string[] gatewayUrls;
+        string initialGatewayUrl;
         bytes4 callbackFunction;
         uint256 price;
     }
@@ -27,7 +27,7 @@ contract QiaoFactory is IExtendedResolver {
         bytes32 indexed hash,
         address addr,
         string name,
-        string[] gatewayUrls,
+        string initialGatewayUrl,
         bytes4 callbackFunction,
         uint256 price
     );
@@ -36,25 +36,24 @@ contract QiaoFactory is IExtendedResolver {
 
     function createContract(
         string memory name,
-        string[] memory gatewayUrls,
+        string memory initialGatewayUrl,
         bytes4 callbackFunction,
         uint256 price
     ) public payable {
         bytes32 hash = keccak256(
-            abi.encodePacked(name, gatewayUrls, callbackFunction, price)
+            abi.encodePacked(name, initialGatewayUrl, callbackFunction, price)
         );
         require(contracts[hash].addr == address(0), "Contract already exists");
 
-        bytes memory bytecode = type(ERC3668Contract).creationCode;
+        bytes memory bytecode = type(QiaoContract).creationCode;
         bytes memory constructorArgs = abi.encode(
             address(this),
-            gatewayUrls,
+            initialGatewayUrl,
             callbackFunction,
             price,
             msg.sender
         );
         bytes32 salt = keccak256(abi.encodePacked(name, block.timestamp));
-
         address addr = Create2.deploy(
             0,
             salt,
@@ -64,7 +63,7 @@ contract QiaoFactory is IExtendedResolver {
         contracts[hash] = ContractInfo(
             addr,
             name,
-            gatewayUrls,
+            initialGatewayUrl,
             callbackFunction,
             price
         );
@@ -74,7 +73,7 @@ contract QiaoFactory is IExtendedResolver {
             hash,
             addr,
             name,
-            gatewayUrls,
+            initialGatewayUrl,
             callbackFunction,
             price
         );
@@ -86,8 +85,11 @@ contract QiaoFactory is IExtendedResolver {
     ) external view override returns (bytes memory) {
         bytes32 hash = nameToHash[string(name)];
         require(hash != bytes32(0), "Name not found");
-
         ContractInfo memory info = contracts[hash];
         return abi.encodePacked(info.addr);
+    }
+
+    function supportsInterface(bytes4 interfaceID) public pure returns (bool) {
+        return interfaceID == type(IExtendedResolver).interfaceId;
     }
 }

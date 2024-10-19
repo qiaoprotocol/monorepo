@@ -25,13 +25,13 @@ contract QiaoContract is Ownable {
 
     constructor(
         address _factory,
-        string[] memory _gatewayUrls,
+        string memory _initialGatewayUrl,
         bytes4 _callbackFunction,
         uint256 _price,
         address initialOwner
     ) Ownable(initialOwner) {
         factory = _factory;
-        gatewayUrls = _gatewayUrls;
+        gatewayUrls.push(_initialGatewayUrl);
         callbackFunction = _callbackFunction;
         price = _price;
         signers[initialOwner] = true;
@@ -78,6 +78,22 @@ contract QiaoContract is Ownable {
 
     function removeSigner(address _signer) external onlyOwner {
         signers[_signer] = false;
+    }
+
+    function addGatewayUrl(string memory _newUrl) external onlyOwner {
+        gatewayUrls.push(_newUrl);
+    }
+
+    function removeGatewayUrl(uint256 index) external onlyOwner {
+        require(gatewayUrls.length > 1, "Must keep at least one gateway URL");
+        require(index < gatewayUrls.length, "Invalid index");
+
+        gatewayUrls[index] = gatewayUrls[gatewayUrls.length - 1];
+        gatewayUrls.pop();
+    }
+
+    function getGatewayUrls() external view returns (string[] memory) {
+        return gatewayUrls;
     }
 
     function setPrice(uint256 _price) external onlyOwner {
