@@ -4,15 +4,16 @@ pragma solidity ^0.8.27;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "./SignatureVerifier.sol";
 
-contract ERC3668Contract is Ownable {
+contract QiaoContract is Ownable {
     using ECDSA for bytes32;
 
     address public factory;
     string[] public gatewayUrls;
     bytes4 public callbackFunction;
     uint256 public price;
-    address public signer;
+    mapping(address => bool) public signers;
 
     error OffchainLookup(
         address sender,
@@ -33,7 +34,7 @@ contract ERC3668Contract is Ownable {
         gatewayUrls = _gatewayUrls;
         callbackFunction = _callbackFunction;
         price = _price;
-        signer = initialOwner; // Set the initial signer to the owner
+        signers[initialOwner] = true;
     }
 
     function resolve(
@@ -63,27 +64,20 @@ contract ERC3668Contract is Ownable {
         bytes calldata response,
         bytes calldata extraData
     ) external view returns (bytes memory) {
-        // Extract the signature from the response
-        (bytes memory result, bytes memory signature) = abi.decode(
-            response,
-            (bytes, bytes)
+        (address signer, bytes memory result) = SignatureVerifier.verify(
+            extraData,
+            response
         );
-
-        // Reconstruct the message that was signed
-        bytes32 messageHash = keccak256(
-            abi.encodePacked(address(this), extraData, result)
-        );
-        bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
-
-        // Verify the signature
-        address recoveredSigner = ethSignedMessageHash.recover(signature);
-        require(recoveredSigner == signer, "Invalid signature");
-
+        require(signers[signer], "SignatureVerifier: Invalid signature");
         return result;
     }
 
-    function setSigner(address _signer) external onlyOwner {
-        signer = _signer;
+    function addSigner(address _signer) external onlyOwner {
+        signers[_signer] = true;
+    }
+
+    function removeSigner(address _signer) external onlyOwner {
+        signers[_signer] = false;
     }
 
     function setPrice(uint256 _price) external onlyOwner {
