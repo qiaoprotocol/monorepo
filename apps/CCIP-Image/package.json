@@ -1,0 +1,22 @@
+{
+  "name": "ccip-image-server",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "tsx index.ts",
+    "dev": "tsx watch index.ts"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.2",
+    "@qiaoprotocol/ccip-gateway": "1.0.0",
+    "dotenv": "^16.4.5",
+    "pinata-web3": "^0.5.1",
+    "viem": "^2.21.30"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.1"
+  }
+}
