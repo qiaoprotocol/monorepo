@@ -14,8 +14,9 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Lending & Borrowing System",
-  description: "Demo app for the Lending & Borrowing System",
+  title: "Qiao Protocol",
+  description:
+    "桥 Protocol 🌉 — an innovative layer that offloads computation to off-chain resources, enables cross-chain delegations, and offers a universal resolver for smart contracts to ensure seamless interoperability.",
 };
 
 export default function RootLayout({
