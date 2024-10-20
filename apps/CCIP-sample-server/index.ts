@@ -17,6 +17,8 @@ import {
   decodeFunctionData,
   parseAbi,
   toBytes,
+  encodeFunctionResult,
+  pad,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import dotenv from "dotenv";
@@ -305,8 +307,6 @@ gateway.add(resolverAbi, [
       let result;
       switch (functionSignature) {
         case "addr(bytes32)":
-          result = lookupRecord(name, "addr");
-          break;
         case "addr(bytes32,uint256)":
           result = lookupRecord(name, "addr");
           break;
@@ -323,8 +323,7 @@ gateway.add(resolverAbi, [
       if (result === null) {
         throw new Error(`Record not found for ${name}`);
       }
-
-      return result;
+      return pad(result as `0x${string}`, { size: 32 });
     },
   },
 ]);
