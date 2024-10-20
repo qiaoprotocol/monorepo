@@ -6,8 +6,6 @@ import {
   decodeAbiParameters,
   parseAbiParameters,
   keccak256,
-  toHex,
-  concat,
   isAddress,
   hexToString,
   stringToHex,
@@ -15,9 +13,8 @@ import {
   isHex,
   toFunctionSelector,
   encodePacked,
-  fromHex,
+  type Hex,
 } from "viem";
-import type { SignableMessage } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { mainnet } from "viem/chains";
 import dotenv from "dotenv";
@@ -31,10 +28,6 @@ if (!privateKey) {
 }
 
 const account = privateKeyToAccount(`0x${privateKey}` as `0x${string}`);
-const publicClient = createPublicClient({
-  chain: mainnet,
-  transport: http(),
-});
 
 interface Handler {
   type: any;
@@ -179,9 +172,12 @@ gateway.add(qiaoAbi, [
       );
 
       // Here you would implement your actual off-chain logic
-      const result = stringToHex(
-        `This is a super long message, Processed off-chain: ${hexToString(input)}`
-      );
+      const handleInput = (input: Hex): Hex => {
+        const inputString = hexToString(input);
+        const outPut = `Hello from CCIP-Read Gateway: ${inputString}`;
+        return stringToHex(outPut);
+      };
+      const result = handleInput(input);
 
       return result;
     },
