@@ -1,5 +1,5 @@
 {
-  "name": "ccip-sample-server",
+  "name": "ccip-ai-server",
   "module": "index.ts",
   "type": "module",
   "scripts": {

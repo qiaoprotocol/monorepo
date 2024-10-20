@@ -20,7 +20,7 @@ export default function Home() {
           description="This is a demo of a CCIP read gateway for the Qiao protocol, hello world!"
         />
         <CCIPReadDemo
-          contractAddress="0xB084De01b2610F2F4ad8ab731Dbaaf78011422ED"
+          contractAddress="0xdb801a6a66cB3F9B2D943f9c90Dda0B8B8825084"
           ensName="localhost.bridgeprotocol.eth"
           description="This is a CCIP read gateway that points to localhost:3000, happy debugging!"
         />

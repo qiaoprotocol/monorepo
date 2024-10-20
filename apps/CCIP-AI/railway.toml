@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pnpm install"
+installCommand = "pnpm install"
 
 [deploy]
 startCommand = "pnpm start"
