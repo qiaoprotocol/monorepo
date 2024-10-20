@@ -11,11 +11,12 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { usePublicClient } from "wagmi";
+import { useAccount, usePublicClient } from "wagmi";
 
 import { abi as QiaoFactoryABI } from "../lib/abis/QiaoFactory.json";
 
 export default function GetContract() {
+  const { chainId } = useAccount();
   const [contractInput, setcontractInput] = useState("");
   const [contractResult, setcontractResult] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +31,10 @@ export default function GetContract() {
     setcontractResult("");
     publicClient
       .readContract({
-        address: "0xf478FF3BcF37be3016C1CeCE3DE6B4114d69edDa",
+        address:
+          chainId == 11155111
+            ? "0xf478FF3BcF37be3016C1CeCE3DE6B4114d69edDa"
+            : "0xd53a6e3eabecadff73559aa1b7678738a84313ed",
         abi: QiaoFactoryABI,
         functionName: "getContract",
         args: [contractInput],

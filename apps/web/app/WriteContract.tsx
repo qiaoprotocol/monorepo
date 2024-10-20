@@ -19,10 +19,12 @@ import {
 
 import { abi as QiaoFactoryABI } from "../lib/abis/QiaoFactory.json";
 
-const CONTRACT_ADDRESS = "0xf478FF3BcF37be3016C1CeCE3DE6B4114d69edDa";
-
 export default function CreateContract() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chainId } = useAccount();
+  const CONTRACT_ADDRESS =
+    chainId == 11155111
+      ? "0xf478FF3BcF37be3016C1CeCE3DE6B4114d69edDa"
+      : "0xd53a6e3eabecadff73559aa1b7678738a84313ed";
   const [contractName, setContractName] = useState("");
   const [initialGatewayUrl, setInitialGatewayUrl] = useState("");
   const [txHash, setTxHash] = useState("");

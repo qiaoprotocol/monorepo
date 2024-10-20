@@ -5,13 +5,27 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { http } from "wagmi";
-import { sepolia } from "wagmi/chains";
+import {
+  baseSepolia,
+  flowTestnet,
+  gnosisChiado,
+  polygonAmoy,
+  sepolia,
+  storyTestnet,
+} from "wagmi/chains";
 import { WagmiProvider } from "wagmi";
 
 const config = getDefaultConfig({
   appName: "RainbowKit demo",
   projectId: "YOUR_PROJECT_ID",
-  chains: [sepolia],
+  chains: [
+    sepolia,
+    polygonAmoy,
+    storyTestnet,
+    gnosisChiado,
+    baseSepolia,
+    flowTestnet,
+  ],
   ssr: true,
   transports: {
     [sepolia.id]: http(

@@ -68,6 +68,7 @@ gateway.add(qiaoAbi, [
             }
 
             const blob = await response.blob();
+            console.log(blob);
             async function upload() {
               try {
                 const file = new File([blob], `image-[${prompt}].jpeg`, {
@@ -100,6 +101,6 @@ gateway.add(qiaoAbi, [
 
 serve({
   fetch: gateway.app.fetch,
-  port: 3003,
+  port: 3000,
 });
 console.log(`CCIP-Image is running on 3003`);
