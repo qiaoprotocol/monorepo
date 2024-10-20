@@ -1,0 +1,604 @@
+{
+    "address": "0xB35cC6CaB1501d5F3b6b8fcF3215898C9d03E981",
+    "abi": [
+        {
+            "type": "constructor",
+            "stateMutability": "nonpayable",
+            "inputs": [
+                {
+                    "type": "address",
+                    "name": "_pkpNft",
+                    "internalType": "address"
+                }
+            ]
+        },
+        {
+            "type": "event",
+            "name": "PkpNftAddressSet",
+            "inputs": [
+                {
+                    "type": "address",
+                    "name": "newPkpNftAddress",
+                    "internalType": "address",
+                    "indexed": false
+                }
+            ],
+            "anonymous": false
+        },
+        {
+            "type": "event",
+            "name": "PubkeyRoutingDataSet",
+            "inputs": [
+                {
+                    "type": "uint256",
+                    "name": "tokenId",
+                    "internalType": "uint256",
+                    "indexed": true
+                },
+                {
+                    "type": "bytes",
+                    "name": "pubkey",
+                    "internalType": "bytes",
+                    "indexed": false
+                },
+                {
+                    "type": "address",
+                    "name": "stakingContract",
+                    "internalType": "address",
+                    "indexed": false
+                },
+                {
+                    "type": "uint256",
+                    "name": "keyType",
+                    "internalType": "uint256",
+                    "indexed": false
+                }
+            ],
+            "anonymous": false
+        },
+        {
+            "type": "event",
+            "name": "RoleAdminChanged",
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role",
+                    "internalType": "bytes32",
+                    "indexed": true
+                },
+                {
+                    "type": "bytes32",
+                    "name": "previousAdminRole",
+                    "internalType": "bytes32",
+                    "indexed": true
+                },
+                {
+                    "type": "bytes32",
+                    "name": "newAdminRole",
+                    "internalType": "bytes32",
+                    "indexed": true
+                }
+            ],
+            "anonymous": false
+        },
+        {
+            "type": "event",
+            "name": "RoleGranted",
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role",
+                    "internalType": "bytes32",
+                    "indexed": true
+                },
+                {
+                    "type": "address",
+                    "name": "account",
+                    "internalType": "address",
+                    "indexed": true
+                },
+                {
+                    "type": "address",
+                    "name": "sender",
+                    "internalType": "address",
+                    "indexed": true
+                }
+            ],
+            "anonymous": false
+        },
+        {
+            "type": "event",
+            "name": "RoleRevoked",
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role",
+                    "internalType": "bytes32",
+                    "indexed": true
+                },
+                {
+                    "type": "address",
+                    "name": "account",
+                    "internalType": "address",
+                    "indexed": true
+                },
+                {
+                    "type": "address",
+                    "name": "sender",
+                    "internalType": "address",
+                    "indexed": true
+                }
+            ],
+            "anonymous": false
+        },
+        {
+            "type": "function",
+            "stateMutability": "view",
+            "outputs": [
+                {
+                    "type": "bytes32",
+                    "name": "",
+                    "internalType": "bytes32"
+                }
+            ],
+            "name": "ADMIN_ROLE",
+            "inputs": []
+        },
+        {
+            "type": "function",
+            "stateMutability": "view",
+            "outputs": [
+                {
+                    "type": "bytes32",
+                    "name": "",
+                    "internalType": "bytes32"
+                }
+            ],
+            "name": "DEFAULT_ADMIN_ROLE",
+            "inputs": []
+        },
+        {
+            "type": "function",
+            "stateMutability": "view",
+            "outputs": [
+                {
+                    "type": "bytes32",
+                    "name": "",
+                    "internalType": "bytes32"
+                }
+            ],
+            "name": "ROUTER_ROLE",
+            "inputs": []
+        },
+        {
+            "type": "function",
+            "stateMutability": "pure",
+            "outputs": [
+                {
+                    "type": "address",
+                    "name": "",
+                    "internalType": "address"
+                }
+            ],
+            "name": "deriveEthAddressFromPubkey",
+            "inputs": [
+                {
+                    "type": "bytes",
+                    "name": "pubkey",
+                    "internalType": "bytes"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "stateMutability": "view",
+            "outputs": [
+                {
+                    "type": "uint256",
+                    "name": "",
+                    "internalType": "uint256"
+                }
+            ],
+            "name": "ethAddressToPkpId",
+            "inputs": [
+                {
+                    "type": "address",
+                    "name": "",
+                    "internalType": "address"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "stateMutability": "view",
+            "outputs": [
+                {
+                    "type": "address",
+                    "name": "",
+                    "internalType": "address"
+                }
+            ],
+            "name": "getEthAddress",
+            "inputs": [
+                {
+                    "type": "uint256",
+                    "name": "tokenId",
+                    "internalType": "uint256"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "stateMutability": "view",
+            "outputs": [
+                {
+                    "type": "bytes",
+                    "name": "",
+                    "internalType": "bytes"
+                }
+            ],
+            "name": "getPubkey",
+            "inputs": [
+                {
+                    "type": "uint256",
+                    "name": "tokenId",
+                    "internalType": "uint256"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "stateMutability": "view",
+            "outputs": [
+                {
+                    "type": "bytes32",
+                    "name": "",
+                    "internalType": "bytes32"
+                }
+            ],
+            "name": "getRoleAdmin",
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role",
+                    "internalType": "bytes32"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "stateMutability": "view",
+            "outputs": [
+                {
+                    "type": "tuple",
+                    "name": "",
+                    "internalType": "struct PubkeyRouter.PubkeyRoutingData",
+                    "components": [
+                        {
+                            "type": "bytes",
+                            "name": "pubkey",
+                            "internalType": "bytes"
+                        },
+                        {
+                            "type": "address",
+                            "name": "stakingContract",
+                            "internalType": "address"
+                        },
+                        {
+                            "type": "uint256",
+                            "name": "keyType",
+                            "internalType": "uint256"
+                        }
+                    ]
+                }
+            ],
+            "name": "getRoutingData",
+            "inputs": [
+                {
+                    "type": "uint256",
+                    "name": "tokenId",
+                    "internalType": "uint256"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "stateMutability": "nonpayable",
+            "outputs": [],
+            "name": "grantRole",
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role",
+                    "internalType": "bytes32"
+                },
+                {
+                    "type": "address",
+                    "name": "account",
+                    "internalType": "address"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "stateMutability": "view",
+            "outputs": [
+                {
+                    "type": "bool",
+                    "name": "",
+                    "internalType": "bool"
+                }
+            ],
+            "name": "hasRole",
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role",
+                    "internalType": "bytes32"
+                },
+                {
+                    "type": "address",
+                    "name": "account",
+                    "internalType": "address"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "stateMutability": "view",
+            "outputs": [
+                {
+                    "type": "bool",
+                    "name": "",
+                    "internalType": "bool"
+                }
+            ],
+            "name": "isRouted",
+            "inputs": [
+                {
+                    "type": "uint256",
+                    "name": "tokenId",
+                    "internalType": "uint256"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "stateMutability": "view",
+            "outputs": [
+                {
+                    "type": "address",
+                    "name": "",
+                    "internalType": "contract PKPNFT"
+                }
+            ],
+            "name": "pkpNFT",
+            "inputs": []
+        },
+        {
+            "type": "function",
+            "stateMutability": "view",
+            "outputs": [
+                {
+                    "type": "bytes",
+                    "name": "pubkey",
+                    "internalType": "bytes"
+                },
+                {
+                    "type": "address",
+                    "name": "stakingContract",
+                    "internalType": "address"
+                },
+                {
+                    "type": "uint256",
+                    "name": "keyType",
+                    "internalType": "uint256"
+                }
+            ],
+            "name": "pubkeys",
+            "inputs": [
+                {
+                    "type": "uint256",
+                    "name": "",
+                    "internalType": "uint256"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "stateMutability": "nonpayable",
+            "outputs": [],
+            "name": "renounceRole",
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role",
+                    "internalType": "bytes32"
+                },
+                {
+                    "type": "address",
+                    "name": "account",
+                    "internalType": "address"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "stateMutability": "nonpayable",
+            "outputs": [],
+            "name": "revokeRole",
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role",
+                    "internalType": "bytes32"
+                },
+                {
+                    "type": "address",
+                    "name": "account",
+                    "internalType": "address"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "stateMutability": "nonpayable",
+            "outputs": [],
+            "name": "setPkpNftAddress",
+            "inputs": [
+                {
+                    "type": "address",
+                    "name": "newPkpNftAddress",
+                    "internalType": "address"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "stateMutability": "nonpayable",
+            "outputs": [],
+            "name": "setRoutingData",
+            "inputs": [
+                {
+                    "type": "uint256",
+                    "name": "tokenId",
+                    "internalType": "uint256"
+                },
+                {
+                    "type": "bytes",
+                    "name": "pubkey",
+                    "internalType": "bytes"
+                },
+                {
+                    "type": "address",
+                    "name": "stakingContractAddress",
+                    "internalType": "address"
+                },
+                {
+                    "type": "uint256",
+                    "name": "keyType",
+                    "internalType": "uint256"
+                },
+                {
+                    "type": "tuple[]",
+                    "name": "signatures",
+                    "internalType": "struct PubkeyRouter.Signature[]",
+                    "components": [
+                        {
+                            "type": "bytes32",
+                            "name": "r",
+                            "internalType": "bytes32"
+                        },
+                        {
+                            "type": "bytes32",
+                            "name": "s",
+                            "internalType": "bytes32"
+                        },
+                        {
+                            "type": "uint8",
+                            "name": "v",
+                            "internalType": "uint8"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "stateMutability": "nonpayable",
+            "outputs": [],
+            "name": "setRoutingDataAsAdmin",
+            "inputs": [
+                {
+                    "type": "uint256",
+                    "name": "tokenId",
+                    "internalType": "uint256"
+                },
+                {
+                    "type": "bytes",
+                    "name": "pubkey",
+                    "internalType": "bytes"
+                },
+                {
+                    "type": "address",
+                    "name": "stakingContract",
+                    "internalType": "address"
+                },
+                {
+                    "type": "uint256",
+                    "name": "keyType",
+                    "internalType": "uint256"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "stateMutability": "nonpayable",
+            "outputs": [],
+            "name": "setRoutingDataBatch",
+            "inputs": [
+                {
+                    "type": "uint256[]",
+                    "name": "tokenIds",
+                    "internalType": "uint256[]"
+                },
+                {
+                    "type": "bytes[]",
+                    "name": "_pubkeys",
+                    "internalType": "bytes[]"
+                },
+                {
+                    "type": "address",
+                    "name": "stakingContract",
+                    "internalType": "address"
+                },
+                {
+                    "type": "uint256",
+                    "name": "keyType",
+                    "internalType": "uint256"
+                },
+                {
+                    "type": "tuple[][]",
+                    "name": "signatures",
+                    "internalType": "struct PubkeyRouter.Signature[][]",
+                    "components": [
+                        {
+                            "type": "bytes32",
+                            "name": "r",
+                            "internalType": "bytes32"
+                        },
+                        {
+                            "type": "bytes32",
+                            "name": "s",
+                            "internalType": "bytes32"
+                        },
+                        {
+                            "type": "uint8",
+                            "name": "v",
+                            "internalType": "uint8"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "stateMutability": "view",
+            "outputs": [
+                {
+                    "type": "bool",
+                    "name": "",
+                    "internalType": "bool"
+                }
+            ],
+            "name": "supportsInterface",
+            "inputs": [
+                {
+                    "type": "bytes4",
+                    "name": "interfaceId",
+                    "internalType": "bytes4"
+                }
+            ]
+        }
+    ]
+}
