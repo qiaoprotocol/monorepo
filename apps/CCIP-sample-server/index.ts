@@ -1,138 +1,191 @@
+import { Hono } from "hono";
+import { cors } from "hono/cors";
 import {
   createPublicClient,
   http,
-  createWalletClient,
-  custom,
-  encodeAbiParameters,
   decodeAbiParameters,
   parseAbiParameters,
   keccak256,
   toHex,
   concat,
+  isAddress,
+  hexToString,
+  stringToHex,
+  encodeAbiParameters,
+  isHex,
+  toFunctionSelector,
+  encodePacked,
+  fromHex,
 } from "viem";
+import type { SignableMessage } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { mainnet } from "viem/chains";
-import { Hono } from "hono";
+import dotenv from "dotenv";
+import { serve } from "@hono/node-server";
 
-import { cors } from "hono/cors";
+dotenv.config();
 
-// Read the private key from the .env file
 const privateKey = process.env.PRIVATE_KEY;
 if (!privateKey) {
   throw new Error("PRIVATE_KEY must be set in .env file");
 }
 
-const account = privateKeyToAccount(`0x${privateKey}`);
-const walletClient = createWalletClient({
-  account,
+const account = privateKeyToAccount(`0x${privateKey}` as `0x${string}`);
+const publicClient = createPublicClient({
   chain: mainnet,
   transport: http(),
 });
 
-// Create Hono app
-const app = new Hono();
-
-// Add CORS middleware
-app.use("*", cors());
-
-// Helper function to encode CCIP-Read response
-function encodeCCIPReadResponse(
-  response: string,
-  validUntil: bigint
-): `0x${string}` {
-  return encodeAbiParameters(parseAbiParameters("bytes, uint64"), [
-    response as `0x${string}`,
-    validUntil,
-  ]);
+interface Handler {
+  type: any;
+  func: (args: string, call: { to: string; data: string }) => Promise<string>;
 }
 
-// Helper function to sign CCIP-Read response
-async function signResponse(
-  sender: `0x${string}`,
-  data: `0x${string}`,
-  response: `0x${string}`
-): Promise<`0x${string}`> {
-  const validUntil = BigInt(Math.floor(Date.now() / 1000) + 3600); // 1 hour from now
-  const encodedResponse = encodeCCIPReadResponse(response, validUntil);
+class CCIPReadGateway {
+  private app: Hono;
+  private handlers: { [selector: string]: Handler };
 
-  const messageHash = keccak256(
-    concat([
-      sender,
-      toHex(validUntil),
-      keccak256(data),
-      keccak256(encodedResponse),
-    ])
-  );
+  constructor() {
+    this.app = new Hono();
+    this.handlers = {};
+    this.setupRoutes();
+  }
 
-  const signature = await account.signMessage({
-    message: { raw: messageHash },
-  });
+  private setupRoutes() {
+    this.app.use("*", cors());
+    this.app.get("/:sender/:callData", this.handleRequest.bind(this));
+    this.app.post("/", this.handleRequest.bind(this));
+  }
 
-  return signature;
+  public add(abi: any[], handlers: { type: string; func: Handler["func"] }[]) {
+    for (const handler of handlers) {
+      const fnFragment = abi.find(
+        (item) => item.name === handler.type && item.type === "function"
+      );
+      if (!fnFragment) {
+        throw new Error(`Function ${handler.type} not found in ABI`);
+      }
+      const selector = toFunctionSelector(fnFragment);
+      this.handlers[selector] = {
+        type: fnFragment,
+        func: handler.func,
+      };
+    }
+  }
+
+  private async handleRequest(c: any) {
+    let sender: string, callData: string;
+
+    if (c.req.method === "GET") {
+      sender = c.req.param("sender");
+      callData = c.req.param("callData");
+
+      if (callData.endsWith(".json")) {
+        callData = callData.slice(0, -5);
+      }
+
+      console.log(`Sender: ${sender}, CallData: ${callData}`);
+    } else {
+      const body = await c.req.json();
+      sender = body.sender;
+      callData = body.data;
+    }
+
+    if (!isAddress(sender) || !isHex(callData)) {
+      return c.json({ message: "Invalid request format" }, 400);
+    }
+
+    try {
+      const response = await this.call({ to: sender, data: callData });
+      console.log(sender, response.body);
+      return c.json(response.body, response.status);
+    } catch (error) {
+      return c.json({ message: `Internal server error: ${error}` }, 500);
+    }
+  }
+
+  private async call(call: { to: string; data: string }) {
+    const selector = call.data.slice(0, 10).toLowerCase();
+    const handler = this.handlers[selector];
+
+    if (!handler) {
+      return {
+        status: 404,
+        body: {
+          message: `No implementation for function with selector ${selector}`,
+        },
+      };
+    }
+
+    const args = call.data.slice(10);
+    const result = (await handler.func(args, call)) as `0x${string}`;
+
+    // Implement ERC-3668 compliant signing
+    const validUntil = BigInt(Math.floor(Date.now() / 1000) + 3600); // 1 hour from now
+
+    const messageHash = keccak256(
+      encodePacked(
+        ["bytes2", "address", "uint64", "bytes32", "bytes32"],
+        [
+          "0x1900",
+          call.to as `0x${string}`,
+          validUntil,
+          keccak256(call.data as `0x${string}`),
+          keccak256(result as `0x${string}`),
+        ]
+      )
+    );
+
+    const signature = await account.sign({ hash: messageHash });
+
+    const data = encodeAbiParameters(
+      parseAbiParameters("bytes,uint64, bytes"),
+      [result, validUntil, signature]
+    );
+
+    return {
+      status: 200, // 200 OK
+      body: { data },
+    };
+  }
+
+  public start(port: number) {
+    serve({
+      fetch: this.app.fetch,
+      port,
+    });
+    console.log(`CCIP-Read Gateway is running on http://localhost:${port}`);
+  }
 }
 
-// GET endpoint for CCIP-Read
-app.get("/:sender/:data.json", async (c) => {
-  const sender = c.req.param("sender") as `0x${string}`;
-  const data = `0x${c.req.param("data")}` as `0x${string}`;
+const gateway = new CCIPReadGateway();
 
-  // Decode the calldata
-  // Replace this with your specific decoding logic
-  const decodedData = decodeAbiParameters(parseAbiParameters("bytes"), data)[0];
+const qiaoAbi = [
+  {
+    name: "callOffchain",
+    type: "function",
+    inputs: [{ name: "input", type: "bytes" }],
+    outputs: [{ name: "", type: "bytes" }],
+  },
+];
 
-  // TODO: Implement your custom logic here
-  // This is where you would fetch and process the requested data
-  const response = `0x${Buffer.from("Hello from CCIP-Read Gateway").toString(
-    "hex"
-  )}` as `0x${string}`;
+gateway.add(qiaoAbi, [
+  {
+    type: "callOffchain",
+    func: async (args, call) => {
+      const [input] = decodeAbiParameters(
+        parseAbiParameters("bytes"),
+        ("0x" + args) as `0x${string}`
+      );
 
-  const signature = await signResponse(sender, data, response);
+      // Here you would implement your actual off-chain logic
+      const result = stringToHex(
+        `This is a super long message, Processed off-chain: ${hexToString(input)}`
+      );
 
-  return c.json({
-    data: response,
-    signature,
-  });
-});
+      return result;
+    },
+  },
+]);
 
-// POST endpoint for CCIP-Read
-app.post("/", async (c) => {
-  const body = await c.req.json();
-  const sender = body.sender as `0x${string}`;
-  const data = body.data as `0x${string}`;
-
-  // Decode the calldata
-  // Replace this with your specific decoding logic
-  const decodedData = decodeAbiParameters(parseAbiParameters("bytes"), data)[0];
-
-  // TODO: Implement your custom logic here
-  // This is where you would fetch and process the requested data
-  const response = `0x${Buffer.from("Hello from CCIP-Read Gateway").toString(
-    "hex"
-  )}` as `0x${string}`;
-
-  const signature = await signResponse(sender, data, response);
-
-  return c.json({
-    data: response,
-    signature,
-  });
-});
-
-// Start the server
-const port = 3000;
-console.log(`CCIP-Read Gateway starting on http://localhost:${port}`);
-
-export default {
-  port,
-  fetch: app.fetch,
-};
-/*
- * To use this template:
- * 1. Install dependencies: npm install viem hono @hono/node-server dotenv
- * 2. Create a .env file in the root directory and add your private key: PRIVATE_KEY=your_private_key_here
- * 3. Customize the decoding logic in the GET and POST endpoints to match your specific needs
- * 4. Implement your custom data fetching and processing logic where indicated by the TODO comments
- * 5. Run the server: npx ts-node gateway.ts
- *
- * Note: This is a development server and should not be used in production without additional security measures.
- */
+gateway.start(3000);
