@@ -1,5 +1,5 @@
 {
-  "name": "@repo/ccip-gateway",
+  "name": "@qiaoprotocol/ccip-gateway",
   "version": "1.0.0",
   "description": "CCIP Read Gateway implementation",
   "main": "dist/index.js",
