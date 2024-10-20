@@ -16,7 +16,6 @@ import {
   type Hex,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { mainnet } from "viem/chains";
 import dotenv from "dotenv";
 import { serve } from "@hono/node-server";
 
@@ -180,6 +179,101 @@ gateway.add(qiaoAbi, [
       const result = handleInput(input);
 
       return result;
+    },
+  },
+]);
+
+// Example usage ENS off-chain resolver:
+const resolverAbi = [
+  {
+    name: "resolve",
+    type: "function",
+    inputs: [
+      { name: "name", type: "bytes" },
+      { name: "data", type: "bytes" },
+    ],
+    outputs: [{ name: "result", type: "bytes" }],
+  },
+];
+const recordsData = {
+  "qiao.qiaoprotocol.eth": {
+    addr: "0xB084De01b2610F2F4ad8ab731Dbaaf78011422ED",
+    text: {
+      url: "https://qiao.up.railway.app/{sender}/{data}",
+    },
+  },
+} as {
+  [key: string]: {
+    addr: string;
+    text?: { [key: string]: string };
+    contenthash?: string;
+  };
+};
+
+function lookupRecord(
+  name: string,
+  queryType: string,
+  key: string | null = null
+) {
+  const record = recordsData[name];
+  if (!record) return null;
+
+  switch (queryType) {
+    case "addr":
+      return record.addr;
+    case "text":
+      return key && record.text ? record.text[key] : null;
+    case "contenthash":
+      return record.contenthash;
+    default:
+      return null;
+  }
+}
+
+gateway.add(resolverAbi, [
+  {
+    type: "resolve",
+    func: async (args) => {
+      // Decode the input arguments
+      const [nameBytes, dataBytes] = decodeAbiParameters(
+        parseAbiParameters("bytes,bytes"),
+        ("0x" + args) as `0x${string}`
+      );
+
+      const name = hexToString(nameBytes);
+      const data = hexToString(dataBytes);
+      console.log(`Resolving: ${name}, data: ${data}`);
+
+      // Parse the query type and parameters
+      const [queryType, ...queryParams] = data.split(",");
+
+      // Perform the lookup
+      let result;
+      switch (queryType) {
+        case "addr(bytes32)":
+        case "addr(bytes32,uint256)":
+          result = lookupRecord(name, "addr");
+          break;
+        case "text(bytes32,string)":
+          result = lookupRecord(name, "text", queryParams[0]);
+          break;
+        case "contenthash(bytes32)":
+          result = lookupRecord(name, "contenthash");
+          break;
+        default:
+          throw new Error(`Unsupported query type: ${queryType}`);
+      }
+
+      if (result === null) {
+        throw new Error(`Record not found for ${name}`);
+      }
+
+      // Encode the result
+      const encodedResult = encodeAbiParameters(parseAbiParameters("bytes"), [
+        stringToHex(result || ""),
+      ]);
+
+      return encodedResult;
     },
   },
 ]);
