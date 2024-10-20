@@ -14,6 +14,9 @@ import {
   toFunctionSelector,
   encodePacked,
   type Hex,
+  decodeFunctionData,
+  parseAbi,
+  toBytes,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import dotenv from "dotenv";
@@ -195,19 +198,15 @@ const resolverAbi = [
     outputs: [{ name: "result", type: "bytes" }],
   },
 ];
+
 const recordsData = {
-  "qiao.qiaoprotocol.eth": {
+  "qiao.bridgeprotocol.eth": {
     addr: "0xB084De01b2610F2F4ad8ab731Dbaaf78011422ED",
     text: {
       url: "https://qiao.up.railway.app/{sender}/{data}",
     },
+    contenthash: "0x1234567890abcdef1234567890abcdef12345678", // placeholder
   },
-} as {
-  [key: string]: {
-    addr: string;
-    text?: { [key: string]: string };
-    contenthash?: string;
-  };
 };
 
 function lookupRecord(
@@ -215,7 +214,16 @@ function lookupRecord(
   queryType: string,
   key: string | null = null
 ) {
-  const record = recordsData[name];
+  const record = (
+    recordsData as {
+      [key: string]: {
+        addr: string;
+        text: { [key: string]: string };
+        contenthash: string;
+      };
+    }
+  )[name];
+  console.log(name);
   if (!record) return null;
 
   switch (queryType) {
@@ -230,50 +238,93 @@ function lookupRecord(
   }
 }
 
+const functionAbis = parseAbi([
+  "function addr(bytes32 node) external view returns (address)",
+  "function addr(bytes32 node, uint256 coinType) external view returns (bytes)",
+  "function text(bytes32 node, string key) external view returns (string)",
+  "function contenthash(bytes32 node) external view returns (bytes)",
+]);
+
+// Create a mapping from function selectors to their corresponding ABI
+const functionSelectorToAbi: Record<string, any> = {};
+
+for (const abiItem of functionAbis) {
+  if (abiItem.type !== "function") continue;
+  const functionSignature = `${abiItem.name}(${abiItem.inputs.map((input: any) => input.type).join(",")})`;
+  const functionSelector = keccak256(toBytes(functionSignature)).slice(0, 10);
+  functionSelectorToAbi[functionSelector] = { abiItem, functionSignature };
+}
+
 gateway.add(resolverAbi, [
   {
     type: "resolve",
-    func: async (args) => {
+    func: async (args: string) => {
       // Decode the input arguments
       const [nameBytes, dataBytes] = decodeAbiParameters(
         parseAbiParameters("bytes,bytes"),
-        ("0x" + args) as `0x${string}`
+        `0x${args}` as `0x${string}`
       );
 
-      const name = hexToString(nameBytes);
-      const data = hexToString(dataBytes);
-      console.log(`Resolving: ${name}, data: ${data}`);
+      function decodeDnsName(nameBytes: Uint8Array): string {
+        const labels = [];
+        let idx = 0;
+        while (idx < nameBytes.length) {
+          const len = nameBytes[idx];
+          if (len === 0) break;
+          idx++;
+          const labelBytes = nameBytes.slice(idx, idx + len);
+          const label = new TextDecoder("utf-8").decode(labelBytes);
+          labels.push(label);
+          idx += len;
+        }
+        return labels.join(".");
+      }
 
-      // Parse the query type and parameters
-      const [queryType, ...queryParams] = data.split(",");
+      const name = decodeDnsName(toBytes(nameBytes));
+      console.log(`Resolving: ${name}, data: ${dataBytes}`);
 
-      // Perform the lookup
+      // Get the function selector from dataBytes
+      const functionSelector = dataBytes.slice(0, 10);
+
+      // Retrieve the ABI and function signature
+      const functionInfo = functionSelectorToAbi[functionSelector];
+
+      if (!functionInfo) {
+        throw new Error(`Unsupported function selector: ${functionSelector}`);
+      }
+
+      const { abiItem: functionAbi, functionSignature } = functionInfo;
+
+      // Decode the function data to get arguments
+      const { args: functionArgs } = decodeFunctionData({
+        abi: [functionAbi],
+        data: dataBytes as `0x${string}`,
+      });
+
+      // Perform the lookup based on the function signature
       let result;
-      switch (queryType) {
+      switch (functionSignature) {
         case "addr(bytes32)":
+          result = lookupRecord(name, "addr");
+          break;
         case "addr(bytes32,uint256)":
           result = lookupRecord(name, "addr");
           break;
         case "text(bytes32,string)":
-          result = lookupRecord(name, "text", queryParams[0]);
+          result = lookupRecord(name, "text", functionArgs[1]);
           break;
         case "contenthash(bytes32)":
           result = lookupRecord(name, "contenthash");
           break;
         default:
-          throw new Error(`Unsupported query type: ${queryType}`);
+          throw new Error(`Unsupported query type: ${functionSignature}`);
       }
 
       if (result === null) {
         throw new Error(`Record not found for ${name}`);
       }
 
-      // Encode the result
-      const encodedResult = encodeAbiParameters(parseAbiParameters("bytes"), [
-        stringToHex(result || ""),
-      ]);
-
-      return encodedResult;
+      return result;
     },
   },
 ]);
