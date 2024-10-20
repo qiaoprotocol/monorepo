@@ -1,4 +1,4 @@
-import { createGateway } from "@repo/ccip-gateway";
+import { createGateway } from "@qiaoprotocol/ccip-gateway";
 import {
   decodeAbiParameters,
   hexToString,
