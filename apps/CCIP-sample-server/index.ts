@@ -206,6 +206,27 @@ const recordsData = {
     },
     contenthash: "0x1234567890abcdef1234567890abcdef12345678", // placeholder
   },
+  "localhost.bridgeprotocol.eth": {
+    addr: "0xdb801a6a66cB3F9B2D943f9c90Dda0B8B8825084",
+    text: {
+      url: "http://localhost:3000/{sender}/{data}",
+    },
+    contenthash: "0x1234567890abcdef1234567890abcdef12345678", // placeholder
+  },
+  "poem.bridgeprotocol.eth": {
+    addr: "0x71a4B02779ABa0C7Ad2eC919b4bD1c6DbC082f50",
+    text: {
+      url: "https://qiaopoem.up.railway.app/{sender}/{data}",
+    },
+    contenthash: "0x1234567890abcdef1234567890abcdef12345678", // placeholder
+  },
+  "image.bridgeprotocol.eth": {
+    addr: "0xF5572Fbad455015b45E614b08634be4135fCF107",
+    text: {
+      url: "https://qiaoimage.up.railway.app/{sender}/{data}",
+    },
+    contenthash: "0x1234567890abcdef1234567890abcdef12345678", // placeholder
+  },
 };
 
 function lookupRecord(

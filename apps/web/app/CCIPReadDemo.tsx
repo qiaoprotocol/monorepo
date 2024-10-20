@@ -61,7 +61,10 @@ export default function CCIPReadDemo({
     <div className="container mx-auto px-4 py-8">
       <Card>
         <CardHeader>
-          <CardTitle>{ensName}</CardTitle>
+          <CardTitle>
+            {ensName} {contractAddress.slice(0, 4)}...
+            {contractAddress.slice(-4)}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <CardDescription>{description}</CardDescription>
@@ -75,7 +78,7 @@ export default function CCIPReadDemo({
           <Button onClick={handleCCIPCall} disabled={isLoading}>
             {isLoading ? "Processing..." : "Make CCIP Read Call"}
           </Button>
-          {ccipResult && <p className="mt-4">CCIP Result: {ccipResult}</p>}
+          {ccipResult && <p className="mt-4">{ccipResult}</p>}
           {error && (
             <Alert className="mt-4">
               <AlertDescription>{error}</AlertDescription>
