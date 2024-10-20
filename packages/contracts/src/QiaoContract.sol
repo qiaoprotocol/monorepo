@@ -11,8 +11,6 @@ contract QiaoContract is Ownable {
 
     address public factory;
     string[] public gatewayUrls;
-    bytes4 public callbackFunction;
-    uint256 public price;
     mapping(address => bool) public signers;
 
     error OffchainLookup(
@@ -26,41 +24,31 @@ contract QiaoContract is Ownable {
     constructor(
         address _factory,
         string memory _initialGatewayUrl,
-        bytes4 _callbackFunction,
-        uint256 _price,
         address initialOwner
     ) Ownable(initialOwner) {
         factory = _factory;
         gatewayUrls.push(_initialGatewayUrl);
-        callbackFunction = _callbackFunction;
-        price = _price;
         signers[initialOwner] = true;
     }
 
-    function resolve(
-        bytes calldata name,
-        bytes calldata data
-    ) external payable returns (bytes memory) {
-        if (price > 0) {
-            require(msg.value >= price, "Insufficient payment");
-        }
-
+    function callOffchain(
+        bytes calldata input
+    ) public view returns (bytes memory) {
         bytes memory callData = abi.encodeWithSelector(
-            this.resolveWithProof.selector,
-            name,
-            data
+            this.callOffchain.selector,
+            input
         );
 
         revert OffchainLookup(
             address(this),
             gatewayUrls,
             callData,
-            callbackFunction,
-            abi.encodePacked(name, data)
+            this.callOffchainWithProof.selector,
+            callData
         );
     }
 
-    function resolveWithProof(
+    function callOffchainWithProof(
         bytes calldata response,
         bytes calldata extraData
     ) external view returns (bytes memory) {
@@ -90,17 +78,5 @@ contract QiaoContract is Ownable {
 
         gatewayUrls[index] = gatewayUrls[gatewayUrls.length - 1];
         gatewayUrls.pop();
-    }
-
-    function getGatewayUrls() external view returns (string[] memory) {
-        return gatewayUrls;
-    }
-
-    function setPrice(uint256 _price) external onlyOwner {
-        price = _price;
-    }
-
-    function withdraw() external onlyOwner {
-        payable(owner()).transfer(address(this).balance);
     }
 }
