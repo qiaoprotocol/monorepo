@@ -1,0 +1,23 @@
+{
+  "name": "@repo/ccip-gateway",
+  "version": "1.0.0",
+  "description": "CCIP Read Gateway implementation",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": [
+    "ccip",
+    "ethereum",
+    "gateway"
+  ],
+  "scripts": {
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hono/node-server": "^1.13.2",
+    "dotenv": "^16.4.5",
+    "hono": "^4.6.5",
+    "viem": "^2.21.30"
+  }
+}
