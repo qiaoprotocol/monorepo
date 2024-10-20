@@ -8,6 +8,7 @@ import {
 } from "viem";
 import dotenv from "dotenv";
 import { serve } from "@hono/node-server";
+import Anthropic from "@anthropic-ai/sdk";
 
 dotenv.config();
 
@@ -32,10 +33,30 @@ gateway.add(qiaoAbi, [
       );
 
       // Here you would implement your actual off-chain logic
-      const handleInput = (input: Hex): Hex => {
+      const handleInput = async (input: Hex): Promise<Hex> => {
         const inputString = hexToString(input);
-        const outPut = `Hello from CCIP-Read Gateway: ${inputString}`;
-        return stringToHex(outPut);
+        console.log(inputString);
+        const anthropic = new Anthropic();
+
+        const msg = await anthropic.messages.create({
+          model: "claude-3-5-sonnet-20240620",
+          max_tokens: 1000,
+          temperature: 0,
+          system: "Respond only with short poems.",
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: inputString,
+                },
+              ],
+            },
+          ],
+        });
+        const outPut = msg;
+        return stringToHex((outPut.content[0] as any).text);
       };
       const result = handleInput(input);
 
