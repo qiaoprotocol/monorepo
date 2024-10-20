@@ -6,7 +6,10 @@ import {
   stringToHex,
   type Hex,
 } from "viem";
+import dotenv from "dotenv";
 import { serve } from "@hono/node-server";
+
+dotenv.config();
 
 const gateway = createGateway(process.env.PRIVATE_KEY as string);
 
@@ -45,3 +48,4 @@ serve({
   fetch: gateway.app.fetch,
   port: 3002,
 });
+console.log(`CCIP-AI is running on 3002`);
