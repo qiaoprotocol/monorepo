@@ -1,8 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import {
-  createPublicClient,
-  http,
   decodeAbiParameters,
   parseAbiParameters,
   keccak256,
@@ -17,7 +15,6 @@ import {
   decodeFunctionData,
   parseAbi,
   toBytes,
-  encodeFunctionResult,
   pad,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
