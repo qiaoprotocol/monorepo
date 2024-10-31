@@ -45,7 +45,7 @@ function initializeTestBalances() {
     BigInt("2000000000000000000")
   ); // 2 tokens
   balances.set(
-    privateKeyToAddress(process.env.PRIVATE_KEY as `0x${string}`),
+    privateKeyToAddress(`0x${process.env.PRIVATE_KEY}`).toLowerCase(),
     BigInt("3000000000000000000")
   );
 }
